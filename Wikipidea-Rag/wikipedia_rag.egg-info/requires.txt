@@ -1,0 +1,12 @@
+dagster
+dagster-cloud
+pandas
+requests
+lxml
+psycopg2
+wikitextparser
+mwxml
+
+[dev]
+dagster-webserver
+pytest

@@ -1,0 +1,17 @@
+Metadata-Version: 2.2
+Name: wikipedia_rag
+Version: 0.1.0
+Summary: A demostractive rag of wikipedia infroamtion
+Requires-Python: <3.13,>=3.9
+Description-Content-Type: text/markdown
+Requires-Dist: dagster
+Requires-Dist: dagster-cloud
+Requires-Dist: pandas
+Requires-Dist: requests
+Requires-Dist: lxml
+Requires-Dist: psycopg2
+Requires-Dist: wikitextparser
+Requires-Dist: mwxml
+Provides-Extra: dev
+Requires-Dist: dagster-webserver; extra == "dev"
+Requires-Dist: pytest; extra == "dev"

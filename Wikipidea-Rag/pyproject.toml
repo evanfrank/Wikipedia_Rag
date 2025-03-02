@@ -1,0 +1,33 @@
+[project]
+name = "wikipedia_rag"
+version = "0.1.0"
+description = "A demostractive rag of wikipedia infroamtion"
+readme = "README.md"
+requires-python = ">=3.9,<3.13"
+dependencies = [
+    "dagster",
+    "dagster-cloud",
+    "pandas",
+    "requests",
+    "lxml",
+    "psycopg2",
+    "wikitextparser",
+    "mwxml"
+]
+
+[project.optional-dependencies]
+dev = [
+    "dagster-webserver", 
+    "pytest",
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.dagster]
+module_name = "wikipidea_rag.definitions"
+project_name = "wikipidea_rag"
+
+[tool.setuptools.packages.find]
+exclude=["wikipidea_rag_tests"]
