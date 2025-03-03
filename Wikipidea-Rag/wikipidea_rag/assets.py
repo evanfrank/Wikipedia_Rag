@@ -13,10 +13,11 @@ from .asset_functions import parse_dump
 
 @asset
 def stream_date_to_db(localDB: postgres_con) -> MaterializeResult:
-    list = os.listdir('wikipidea_rag\data')
+    list = os.listdir(r'wikipidea_rag\data')
     print(list)
 
-    parse_dump()
+    parse_dump(r"C:\Wikipedia_Rag\Wikipidea-Rag\wikipidea_rag\data\enwiki-20241101-pages-articles-multistream.xml\enwiki-20241101-pages-articles-multistream.xml",
+               localDB.make_con())
     return MaterializeResult(
         metadata={
             "length of docks": len(list),

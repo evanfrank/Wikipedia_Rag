@@ -10,7 +10,7 @@ class postgres_con(ConfigurableResource):
         user = "surf_app"
         pwd = self.password
         host = "localhost"
-        db = "surfing_project"
+        db = "wikipedia_rag"
         con_string = f"postgresql+psycopg2://{user}:{pwd}@{host}/{db}"
         engine = create_engine(con_string)
         return engine
