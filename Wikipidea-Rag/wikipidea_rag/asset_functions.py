@@ -3,7 +3,15 @@ import wikitextparser as wtp
 import pandas as pd
 
 
-def parse_dump(dump_file, localDB):
+def parse_dump_page(dump_file, localDB):
+    dump = mwxml.Dump.from_file(open(dump_file, encoding="utf8"))
+    for index, page in enumerate(dump.pages):
+        parse_page(page, localDB)
+        if index == 1000:
+            break
+
+
+def parse_dump_section(dump_file, localDB):
     dump = mwxml.Dump.from_file(open(dump_file, encoding="utf8"))
     for index, page in enumerate(dump.pages):
         parse_page(page, localDB)
@@ -12,6 +20,18 @@ def parse_dump(dump_file, localDB):
 
 
 def parse_page(page, localDB):
+    if (page.redirect is None) & (page.namespace == 0):
+        page_id = page.id
+        page_title = page.title
+        page_df = pd.DataFrame({"page_id": [page_id],
+                                "page_title": [page_title]})
+        page_df.to_sql(name="pages",
+                       if_exists="append",
+                       con=localDB,
+                       index=False)
+
+
+def parse_section(page, localDB):
     if (page.redirect is None) & (page.namespace == 0):
         for index, revision in enumerate(page):
             parsed = wtp.parse(revision.text)
@@ -27,14 +47,5 @@ def parse_page(page, localDB):
                                    if_exists="append",
                                    con=localDB,
                                    index=False)
-
-            page_id = page.id
-            page_title = page.title
-            page_df = pd.DataFrame({"page_id": [page_id],
-                                    "page_title": [page_title]})
-            page_df.to_sql(name="pages",
-                           if_exists="append",
-                           con=localDB,
-                           index=False)
             if index == 1:
                 break

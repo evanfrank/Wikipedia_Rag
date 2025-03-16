@@ -1,59 +1,80 @@
-import pandas as pd
-import os
-
 from dagster import (  # AssetExecutionContext,
                      MetadataValue,
                      asset,
                      MaterializeResult)
 
-from .resources import postgres_con
+from .asset_functions import (parse_dump_page,
+                              parse_dump_section)
 
-from .asset_functions import parse_dump
+from .resources import postgres_con
+import pandas as pd
+import requests
+import os
+import zipfile
 
 
 @asset
-def stream_date_to_db(localDB: postgres_con) -> MaterializeResult:
-    list = os.listdir(r'wikipidea_rag\data')
-    print(list)
+def download_data() -> MaterializeResult:
+    "https://dumps.wikimedia.org/enwiki/"
+    url = "https://dumps.wikimedia.org/enwiki/"
+    html = requests.get(url).content
+    df_list = pd.read_html(html)
 
-    parse_dump(r"C:\Wikipedia_Rag\Wikipidea-Rag\wikipidea_rag\data\enwiki-20241101-pages-articles-multistream.xml\enwiki-20241101-pages-articles-multistream.xml",
-               localDB.make_con())
     return MaterializeResult(
         metadata={
             "length of docks": len(list),
+            "files in data": file,
+            "preview": MetadataValue.md(df_list.head().to_markdown())
         }
     )
 
 
 @asset
-def bouy_names(localDB: postgres_con) -> MaterializeResult:
-    engine = localDB.make_con()
+def unzip_data() -> MaterializeResult:
+    file = fr"{os.getcwd()}\wikipidea_rag\data\{list[1]})"
 
-    bouy_meta = pd.read_xml("https://www.ndbc.noaa.gov/activestations.xml")
-
-    sql = 'SELECT table_name FROM information_schema.tables \
-           WHERE table_schema=\'public\' AND table_type=\'BASE TABLE\';'
-    tables = pd.read_sql(sql, con=engine)
-
-    if tables.isin(["BouyMeta"]).any().any():
-        sql = "SELECT * FROM public.\"BouyMeta\";"
-        bouy_loaded = pd.read_sql(sql, con=engine)
-        existing_bouys = bouy_loaded['id'].values
-        bouy_meta = bouy_meta[~bouy_meta['id'].isin(existing_bouys)]
-
-        bouy_meta.to_sql("BouyMeta",
-                         con=engine,
-                         if_exists='append',
-                         index=False)
-    else:
-        bouy_meta.to_sql("BouyMeta",
-                         con=engine,
-                         if_exists='append',
-                         index=False)
+    with zipfile.ZipFile("file.zip", "r") as zip_ref:
+        zip_ref.extractall(r"wikipidea_rag\data")
 
     return MaterializeResult(
         metadata={
-            "num_records": len(bouy_meta),
-            "preview": MetadataValue.md(bouy_meta.head().to_markdown()),
+            "length of docks": len(list),
+            "files in data": file,
+        }
+    )
+
+
+@asset(deps=[unzip_data])
+def stream_page_to_db(localDB: postgres_con) -> MaterializeResult:
+    list = os.listdir(r'wikipidea_rag\data')
+
+    print(list.sort())
+
+    file = fr"{os.getcwd()}\wikipidea_rag\data\{list[1]})"
+
+    parse_dump_page(file, localDB.make_con())
+    return MaterializeResult(
+        metadata={
+            "length of docks": len(list),
+            "files in data": file,
+            # "preview": MetadataValue.md(bouy_meta.head().to_markdown())
+        }
+    )
+
+
+@asset(deps=[unzip_data])
+def stream_section_to_db(localDB: postgres_con) -> MaterializeResult:
+    list = os.listdir(r'wikipidea_rag\data')
+
+    print(list.sort())
+
+    file = fr"{os.getcwd()}\wikipidea_rag\data\{list[1]})"
+
+    parse_dump_section(file, localDB.make_con())
+    return MaterializeResult(
+        metadata={
+            "length of docks": len(list),
+            "files in data": file,
+            # "preview": MetadataValue.md(bouy_meta.head().to_markdown())
         }
     )
